@@ -1,5 +1,6 @@
 package com.izzisoft.users.service;
 
+import com.izzisoft.users.dto.MarketUserLoginRequest;
 import com.izzisoft.users.dto.MarketUserRegisterRequest;
 import com.izzisoft.users.dto.MarketUserResponse;
 import com.izzisoft.users.exception.EmailAlreadyExistsException;
@@ -7,6 +8,10 @@ import com.izzisoft.users.exception.UsernameAlreadyExistsException;
 import com.izzisoft.users.model.MarketUser;
 import com.izzisoft.users.repo.MarketUserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +19,28 @@ import org.springframework.stereotype.Service;
 public class MarketUserService {
 
     private final MarketUserRepo marketUserRepo;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public String loginUser(MarketUserLoginRequest marketUserLoginRequest) {
+
+        MarketUser foundUser = marketUserRepo.findByEmail(marketUserLoginRequest.email())
+                .orElseThrow(
+                        () -> new EmailAlreadyExistsException("Email not exists in database!")
+                );
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(marketUserLoginRequest.email(), marketUserLoginRequest.password())
+        );
+
+        if (authentication.isAuthenticated()) {
+            return "Login success!";
+        }
+
+        return "Wrong password!";
+    }
 
     public MarketUserResponse registerUser(MarketUserRegisterRequest marketUserRegisterRequest) {
 
@@ -28,7 +55,7 @@ public class MarketUserService {
         MarketUser marketUser = MarketUser.builder()
                 .username(marketUserRegisterRequest.username())
                 .email(marketUserRegisterRequest.email())
-                .password(marketUserRegisterRequest.password())
+                .password(passwordEncoder.encode(marketUserRegisterRequest.password()))
                 .build();
 
         MarketUser createdUser = marketUserRepo.save(marketUser);
