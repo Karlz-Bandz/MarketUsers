@@ -57,7 +57,7 @@ public class MarketUser {
         }
 
         if (roles.isEmpty()) {
-            roles.add(MarketUserRole.USER);
+            roles.add(MarketUserRole.ROLE_USER);
         }
     }
 }

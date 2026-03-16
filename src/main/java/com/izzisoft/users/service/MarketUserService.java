@@ -4,11 +4,10 @@ import com.izzisoft.users.dto.MarketUserLoginRequest;
 import com.izzisoft.users.dto.MarketUserRegisterRequest;
 import com.izzisoft.users.dto.MarketUserResponse;
 import com.izzisoft.users.exception.EmailAlreadyExistsException;
-import com.izzisoft.users.exception.EmailNotExistsException;
 import com.izzisoft.users.exception.UsernameAlreadyExistsException;
 import com.izzisoft.users.model.MarketUser;
 import com.izzisoft.users.repo.MarketUserRepo;
-import com.izzisoft.users.security.JwtService;
+import com.izzisoft.users.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,21 +25,16 @@ public class MarketUserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final JwtService jwtService;
+    private final TokenService tokenService;
 
     public String loginUser(MarketUserLoginRequest marketUserLoginRequest) {
-
-        MarketUser foundUser = marketUserRepo.findByEmail(marketUserLoginRequest.email())
-                .orElseThrow(
-                        () -> new EmailNotExistsException("Email not exists in database!")
-                );
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(marketUserLoginRequest.email(), marketUserLoginRequest.password())
         );
 
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(foundUser);
+            return tokenService.generateToken(authentication);
         }
 
         return "Wrong password!";
