@@ -5,6 +5,7 @@ import com.izzisoft.users.dto.MarketUserRegisterRequest;
 import com.izzisoft.users.dto.MarketUserResponse;
 import com.izzisoft.users.exception.EmailAlreadyExistsException;
 import com.izzisoft.users.exception.UsernameAlreadyExistsException;
+import com.izzisoft.users.exception.WrongCredentialsException;
 import com.izzisoft.users.model.MarketUser;
 import com.izzisoft.users.repo.MarketUserRepo;
 import com.izzisoft.users.security.TokenService;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +31,15 @@ public class MarketUserService {
 
     public String loginUser(MarketUserLoginRequest marketUserLoginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(marketUserLoginRequest.email(), marketUserLoginRequest.password())
-        );
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(marketUserLoginRequest.email(), marketUserLoginRequest.password())
+            );
 
-        if (authentication.isAuthenticated()) {
             return tokenService.generateToken(authentication);
+        } catch (AuthenticationException ex) {
+            throw new WrongCredentialsException("Wrong email or password!");
         }
-
-        return "Wrong password!";
     }
 
     public MarketUserResponse registerUser(MarketUserRegisterRequest marketUserRegisterRequest) {

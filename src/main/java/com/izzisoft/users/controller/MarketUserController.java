@@ -3,6 +3,7 @@ package com.izzisoft.users.controller;
 import com.izzisoft.users.dto.MarketUserLoginRequest;
 import com.izzisoft.users.dto.MarketUserRegisterRequest;
 import com.izzisoft.users.dto.MarketUserResponse;
+import com.izzisoft.users.dto.TokenResponse;
 import com.izzisoft.users.service.MarketUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,9 @@ public class MarketUserController {
     private final MarketUserService marketUserService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody MarketUserLoginRequest marketUserLoginRequest) {
-        return new ResponseEntity<>(this.marketUserService.loginUser(marketUserLoginRequest), HttpStatus.OK);
+    public ResponseEntity<TokenResponse> loginUser(@RequestBody MarketUserLoginRequest marketUserLoginRequest) {
+        TokenResponse tokenResponse = new TokenResponse(this.marketUserService.loginUser(marketUserLoginRequest));
+        return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
     }
 
     @PostMapping("/register")
