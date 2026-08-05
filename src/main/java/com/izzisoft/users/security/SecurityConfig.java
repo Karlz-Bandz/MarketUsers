@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,6 +42,12 @@ import java.util.Base64;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${jwt.public-key-path}")
+    private String publicKeyPath;
+
+    @Value("${jwt.private-key-path}")
+    private String privateKeyPath;
 
     private final MarketUserDetailsService marketUserDetailsService;
 
@@ -79,14 +86,14 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() throws Exception {
-        RSAPublicKey publicKey = loadPublicKey("../certs/public.pem");
+        RSAPublicKey publicKey = loadPublicKey(publicKeyPath);
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
     }
 
     @Bean
     public JwtEncoder jwtEncoder() throws Exception {
-        RSAPublicKey publicKey = loadPublicKey("../certs/public.pem");
-        RSAPrivateKey privateKey = loadPrivateKey("../certs/private.pem");
+        RSAPublicKey publicKey = loadPublicKey(publicKeyPath);
+        RSAPrivateKey privateKey = loadPrivateKey(privateKeyPath);
 
         JWK jwk = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
